@@ -59,36 +59,11 @@ Token 获取：TP 里进 **Settings → Authentication and Security → Personal
 
 ## 安装
 
-插件不依赖 npm 发布，三种方式任选其一。
-
-### 方式一：从 Git 安装（推荐）
-
 ```sh
 dsh plugin add https://github.com/suuntocn/dsh-tpondemand
 ```
 
-或在 Web UI 里：**插件 → 添加插件** → 粘贴上面的地址。
-
-### 方式二：本地目录（改代码时用）
-
-```sh
-git clone https://github.com/suuntocn/dsh-tpondemand
-dsh plugin add /绝对路径/dsh-tpondemand
-```
-
-这是 **link 安装**：DSH 直接运行该目录的源码，改完即生效。代价是目录不能删或移动。
-
-### 方式三：打包成 tgz
-
-```sh
-git clone https://github.com/suuntocn/dsh-tpondemand
-cd dsh-tpondemand
-pnpm install --ignore-scripts
-pnpm pack                       # 生成 dyikai-dsh-tpondemand-1.0.0.tgz
-dsh plugin add /绝对路径/dyikai-dsh-tpondemand-1.0.0.tgz
-```
-
-tarball 自包含，安装完成后可以删除源码目录。
+也可以在 Web UI 里：**插件 → 添加插件** → 粘贴同一个地址。
 
 ### 安装后确认
 
@@ -143,7 +118,7 @@ tarball 自包含，安装完成后可以删除源码目录。
 | 「需要当前会话的用户确认」 | 当前会话没有审批通道（如无人值守运行） |
 | 附件工具提示「完整文件访问」 | 先切到完整文件访问模式 |
 | 写入返回 `WRITE_UNCERTAIN` | 先回读实体确认是否已生效，**不要直接重试** |
-| 改了源码但行为没变 | link 安装下按 DSH 的安装结果决定是否需重启 Host |
+| 改了源码但行为没变 | 以 DSH 的安装结果为准：需要重启 Host 时按提示重启 |
 
 ---
 
@@ -153,7 +128,6 @@ tarball 自包含，安装完成后可以删除源码目录。
 pnpm install --ignore-scripts
 pnpm test      # 73 项测试
 pnpm check     # 语法检查
-pnpm pack      # 打安装包
 ```
 
 测试全部使用模拟 API、临时目录和无凭据的 MCP 握手，**不会读写真实租户数据**。
