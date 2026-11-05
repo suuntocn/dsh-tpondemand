@@ -1,0 +1,46 @@
+{
+  "name": "@dyikai/dsh-tpondemand",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Targetprocess integration for DeepSeek Harness with URL and Token settings, queries, attachments and previewed changes.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/suuntocn/dsh-tpondemand.git"
+  },
+  "homepage": "https://github.com/suuntocn/dsh-tpondemand#readme",
+  "bugs": {
+    "url": "https://github.com/suuntocn/dsh-tpondemand/issues"
+  },
+  "keywords": ["deepseek-harness", "dsh", "dsh-plugin", "targetprocess", "mcp"],
+  "engines": { "node": ">=22", "dsh": ">=0.2.1-rc.5" },
+  "exports": {
+    ".": "./index.js",
+    "./client": "./client.js",
+    "./locale/*.json": "./locale/*.json",
+    "./icon": "./icon.svg"
+  },
+  "files": ["index.js", "runtime.js", "client.js", "src/*.mjs", "cordis.patch.yml", "locale/*.json", "icon.svg", "README.md", "UPSTREAM.md", "LICENSE"],
+  "scripts": {
+    "test": "node --test test/*.test.mjs",
+    "check": "node --check index.js && node --check runtime.js && node --check client.js"
+  },
+  "dependencies": {
+    "@deepseek-ai/dsh-mcp-client": "0.2.1-rc.5",
+    "@deepseek-ai/schemastery": "3.18.5",
+    "@modelcontextprotocol/server": "2.3.1",
+    "zod": "4.4.3"
+  },
+  "devDependencies": {
+    "@modelcontextprotocol/client": "2.3.1"
+  },
+  "dsh": {
+    "bundle": { "patch": "./cordis.patch.yml" },
+    "client": {
+      "platform": "web",
+      "immediately": true,
+      "inject": ["@deepseek-ai/dsh-client-ui-plugin-manager"]
+    }
+  }
+}

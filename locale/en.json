@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "Targetprocess",
+    "description": "Connect your Targetprocess tenant with a URL and Token. Query work items, read attachments, and preview changes before applying them."
+  }
+}
