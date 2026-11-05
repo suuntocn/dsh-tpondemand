@@ -13,15 +13,34 @@
   "bugs": {
     "url": "https://github.com/suuntocn/dsh-tpondemand/issues"
   },
-  "keywords": ["deepseek-harness", "dsh", "dsh-plugin", "targetprocess", "mcp"],
-  "engines": { "node": ">=22", "dsh": ">=0.2.1-rc.5" },
+  "keywords": [
+    "deepseek-harness",
+    "dsh",
+    "dsh-plugin",
+    "targetprocess",
+    "mcp"
+  ],
+  "engines": {
+    "node": ">=22",
+    "dsh": ">=0.2.1-rc.5"
+  },
   "exports": {
     ".": "./index.js",
     "./client": "./client.js",
     "./locale/*.json": "./locale/*.json",
     "./icon": "./icon.svg"
   },
-  "files": ["index.js", "runtime.js", "client.js", "src/*.mjs", "cordis.patch.yml", "locale/*.json", "icon.svg", "README.md", "UPSTREAM.md", "LICENSE"],
+  "files": [
+    "index.js",
+    "runtime.js",
+    "client.js",
+    "src/*.mjs",
+    "cordis.patch.yml",
+    "locale/*.json",
+    "icon.svg",
+    "README.md",
+    "LICENSE"
+  ],
   "scripts": {
     "test": "node --test test/*.test.mjs",
     "check": "node --check index.js && node --check runtime.js && node --check client.js"
@@ -36,11 +55,15 @@
     "@modelcontextprotocol/client": "2.3.1"
   },
   "dsh": {
-    "bundle": { "patch": "./cordis.patch.yml" },
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
     "client": {
       "platform": "web",
       "immediately": true,
-      "inject": ["@deepseek-ai/dsh-client-ui-plugin-manager"]
+      "inject": [
+        "@deepseek-ai/dsh-client-ui-plugin-manager"
+      ]
     }
   }
 }
