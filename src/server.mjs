@@ -3,7 +3,8 @@ import { StdioServerTransport } from '@modelcontextprotocol/server/stdio';
 import { z } from 'zod';
 import { pathToFileURL } from 'node:url';
 import { loadConfig } from './config.mjs';
-import { TpClient, TpError } from './client.mjs';
+import { TpClient, TpError, CARD_TYPES } from './client.mjs';
+import { present } from './text.mjs';
 import { HandoffService, summarizeBug, publicError } from './handoff.mjs';
 import { BugChangeService } from './changes.mjs';
 import { registerApiTools } from './api-tools.mjs';
@@ -39,7 +40,7 @@ export function registerTools(server, config, client = new TpClient(config), opt
     server.registerTool(name, { description, inputSchema: schema, annotations }, async args => {
       try {
         const result = await handler(args);
-        return { content: [{ type: 'text', text: JSON.stringify(client.sanitize(result), null, 2) }] };
+        return { content: [{ type: 'text', text: JSON.stringify(client.sanitize(present(result)), null, 2) }] };
       } catch (error) {
         return { isError: true, content: [{ type: 'text', text: JSON.stringify(client.sanitize(publicError(error))) }] };
       }
@@ -76,6 +77,27 @@ export function registerTools(server, config, client = new TpClient(config), opt
   const directorySchema = z.object({ nameContains: shortText.optional(), limit: z.number().int().min(1).max(200).default(50), offset: z.number().int().min(0).max(100000).default(0) }).strict();
   register('tp_search_projects', '只读查找项目编号和名称，支持名称及分页。', directorySchema, args => client.directory('Projects', args));
   register('tp_search_users', '只读查找用户编号、姓名及启用状态，支持姓名及分页；不返回邮箱。', directorySchema, args => client.directory('Users', args));
+
+  const cardTypes = z.enum(Object.keys(CARD_TYPES));
+  register('tp_search_cards', '在 Bug、UserStory、Feature、Epic、Task 中按关键词检索名称或描述，按修改时间倒序；用于定位「那句话在哪张卡片里」。逐类型查询，某类型不可用不会隐藏其他类型结果。', z.object({
+    keyword: z.string().trim().min(1).max(200).describe('字面子串，不支持通配符'),
+    entityTypes: z.array(cardTypes).min(1).max(5).default(['Bugs', 'UserStories']),
+    field: z.enum(['name', 'description', 'any']).default('any'),
+    limit: z.number().int().min(1).max(100).default(20),
+    offset: z.number().int().min(0).max(100000).default(0),
+  }).strict(), args => client.cards(args));
+
+  register('tp_my_work', '读取分配给某人的 Bug、UserStory 和 Task，默认排除已完成状态，按修改时间倒序；assigneeId 缺省时为当前 Token 所属用户。', z.object({
+    assigneeId: id.optional().describe('负责人编号，区别于创建人'),
+    entityTypes: z.array(cardTypes).min(1).max(5).default(['Bugs', 'UserStories', 'Tasks']),
+    state: shortText.optional().describe('只保留该状态名称，例如 In Progress；给出后不再按完成态过滤'),
+    includeFinished: z.boolean().default(false),
+    limit: z.number().int().min(1).max(100).default(20),
+  }).strict(), async args => {
+    const userId = args.assigneeId ?? (await client.currentUser()).Id;
+    if (!Number.isSafeInteger(userId)) throw new TpError('INVALID_RESPONSE', '未能确认当前账号编号。');
+    return client.myWork({ ...args, userId });
+  });
   register('tp_get_bug_assignments', '读取 bug 的全部负责人及角色，不混用创建人。', z.object({ bugId: id }).strict(), async ({ bugId }) => ({ bugId, items: await client.assignments(bugId) }));
   register('tp_get_bug_attachments', '读取 bug 全部附件元数据和链接；不通过网页获取。', z.object({ bugId: id }).strict(), async ({ bugId }) => ({ bugId, items: await client.attachments(bugId), contentIsUntrusted: true }));
   register('tp_get_bug_relations', '读取 bug 全部关联关系，包括重复项和依赖；保留 TP 原始关系方向和类型。', z.object({ bugId: id }).strict(), async ({ bugId }) => ({ bugId, items: await client.relations(bugId), contentIsUntrusted: true }));

@@ -43,6 +43,17 @@ URL 与 Token 是插件自带的原生设置项，在 **插件 → Targetprocess
 
 从「查分配给我的 Bug」到「批量转状态并附 MR 评论」，再到「任意实体的字段级查询与修改」都能做。工具名统一为 `mcp__targetprocess__tp_*`，具体清单可以让 Agent 直接列出来。
 
+常用入口：
+
+| 工具 | 用途 |
+|---|---|
+| `tp_my_work` | 我的待办：按负责人聚合 Bug / UserStory / Task，默认排除已完成 |
+| `tp_search_cards` | 全文检索：在名称与描述中找关键词，一次跨多种卡片类型 |
+| `tp_query_entities` | 任意实体的字段级查询 |
+| `tp_preview_api_changes` → `tp_apply_api_changes` | 批量修改的预览与执行 |
+
+`Description` 这类富文本字段返回给模型时会转成纯文本，不再是 HTML 标签。
+
 ---
 
 ## 系统要求

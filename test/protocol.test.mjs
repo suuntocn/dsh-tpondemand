@@ -24,7 +24,8 @@ test('official MCP client initializes stdio server, lists supported tools and ca
     'tp_preview_mr_handoff', 'tp_apply_mr_handoff', 'tp_list_api_resources', 'tp_query_entities',
     'tp_get_entity', 'tp_api_get', 'tp_get_entity_workflow', 'tp_get_entity_comments', 'tp_get_entity_assignments',
     'tp_get_entity_attachments', 'tp_get_entity_relations', 'tp_preview_api_changes', 'tp_apply_api_changes',
-    'tp_preview_attachment_upload', 'tp_read_entity_attachment', 'tp_download_attachment'].sort());
+    'tp_preview_attachment_upload', 'tp_read_entity_attachment', 'tp_download_attachment',
+    'tp_search_cards', 'tp_my_work'].sort());
   assert.equal(tools.find(t => t.name === 'tp_apply_mr_handoff').annotations.readOnlyHint, false);
   const result = await client.callTool({ name: 'tp_connection_status', arguments: {} });
   const data = JSON.parse(result.content[0].text);

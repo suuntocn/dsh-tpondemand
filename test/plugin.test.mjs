@@ -68,10 +68,10 @@ test('standalone config has no implicit tenant or Keychain fallback', async () =
   assert.deepEqual(await loadConfig({ TP_BASE_URL: url }), { origin: url, token: undefined, credentialSource: 'not_configured' });
 });
 
-test('catalog preserves 32 tools, optional defaults, strict objects and destructive hints', () => {
+test('catalog preserves 34 tools, optional defaults, strict objects and destructive hints', () => {
   const catalog = toolCatalog();
-  assert.equal(catalog.length, 32);
-  assert.equal(new Set(catalog.map(tool => tool.name)).size, 32);
+  assert.equal(catalog.length, 34);
+  assert.equal(new Set(catalog.map(tool => tool.name)).size, 34);
   const search = catalog.find(tool => tool.name === 'tp_search_bugs');
   assert.ok(!search.inputSchema.required?.includes('limit'));
   assert.equal(search.inputSchema.additionalProperties, false);
@@ -203,7 +203,7 @@ function hostFixture(config = Config({})) {
 test('Host registers native MCP definitions and denies protected direct execution without approval', async () => {
   const f = hostFixture();
   await apply(f.ctx, f.config);
-  assert.equal(f.tools.size, 32);
+  assert.equal(f.tools.size, 34);
   const signal = new AbortController().signal;
   const status = await f.tools.get('mcp__targetprocess__tp_connection_status').execute({}, { signal });
   assert.equal(body(status).connected, false);

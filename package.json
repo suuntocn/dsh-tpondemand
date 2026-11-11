@@ -1,6 +1,6 @@
 {
   "name": "@dyikai/dsh-tpondemand",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "private": true,
   "type": "module",
   "description": "Targetprocess integration for DeepSeek Harness with URL and Token settings, queries, attachments and previewed changes.",

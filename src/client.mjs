@@ -12,6 +12,8 @@ export function itemsOf(data) {
 
 export const quote = value => `'${value.replaceAll('\\', '\\\\').replaceAll("'", "\\'")}'`;
 export const bugFields = 'Id,Name,CreateDate,ModifyDate,Severity[Id,Name,Importance],EntityState[Id,Name],Project[Id,Name],Owner[Id,FirstName,LastName]';
+export const CARD_TYPES = { Bugs: 'Bug', UserStories: 'UserStory', Features: 'Feature', Epics: 'Epic', Tasks: 'Task' };
+const cardFields = 'Id,Name,EntityState[Id,Name],Project[Id,Name],AssignedUser[Id,FirstName,LastName],ModifyDate';
 
 export class TpClient {
   constructor({ origin, token, fetchImpl = fetch, sleep = delay, timeoutMs = 15000 }) {
@@ -202,6 +204,47 @@ export class TpClient {
     return { items, hasMore: !!result.Next, nextOffset: offset + items.length };
   }
 
+  // Keyword search across card-like entities. Each type is queried independently so one
+  // unavailable resource cannot hide the others.
+  async cards({ keyword, entityTypes, field = 'any', limit = 20, offset = 0 }) {
+    const text = quote(keyword);
+    const where = field === 'name' ? `Name contains ${text}`
+      : field === 'description' ? `Description contains ${text}`
+        : `Name contains ${text} or Description contains ${text}`;
+    return this.collectCards(entityTypes, { where, include: `[${cardFields}]`, orderByDesc: 'ModifyDate', take: limit, skip: offset },
+      { keyword, field, offset, limit });
+  }
+
+  async myWork({ userId, entityTypes, state, includeFinished = false, limit = 20 }) {
+    const clauses = [`AssignedUser.Id eq ${userId}`];
+    if (state) clauses.push(`EntityState.Name eq ${quote(state)}`);
+    else if (!includeFinished) clauses.push("EntityState.IsFinal eq 'false'");
+    return this.collectCards(entityTypes, { where: clauses.join(' and '), include: `[${cardFields}]`, orderByDesc: 'ModifyDate', take: limit },
+      { assignee: { id: userId }, includeFinished: !!state || includeFinished, limit });
+  }
+
+  async collectCards(entityTypes, params, context) {
+    const items = [];
+    const pages = {};
+    for (const resource of entityTypes) {
+      const entityType = CARD_TYPES[resource];
+      try {
+        const result = await this.apiRequest({ path: resource, params });
+        const rows = itemsOf(result);
+        pages[resource] = {
+          entityType, returned: rows.length, hasMore: !!result.Next,
+          ...(context.offset === undefined ? {} : { nextOffset: context.offset + rows.length }),
+        };
+        items.push(...rows.map(row => ({ entityType, ...cardSummary(row, this.origin) })));
+      } catch (error) {
+        if (!(error instanceof TpError)) throw error;
+        pages[resource] = { entityType, error: error.message };
+      }
+    }
+    items.sort((a, b) => dateNumber(b.modifiedAt) - dateNumber(a.modifiedAt));
+    return { ...context, pages, items, contentIsUntrusted: true };
+  }
+
   setState(id, stateId) { return this.request(`Bugs/${id}`, {}, { EntityState: { Id: stateId } }); }
   addComment(id, description) { return this.request('Comments', {}, { Description: description, General: { Id: id } }); }
 
@@ -241,6 +284,20 @@ export class TpClient {
     }
     throw new TpError('UNSUPPORTED_ATTACHMENT', '只内联读取 PNG/JPEG/GIF/WebP 图片或不超过 256 KiB 的 UTF-8 文本；其他格式可通过附件元数据定位。');
   }
+}
+
+function assignedUsers(value) {
+  const rows = Array.isArray(value) ? value : value?.Items ?? (value ? [value] : []);
+  return rows.map(user => ({ id: user.Id, name: [user.FirstName, user.LastName].filter(Boolean).join(' ') }));
+}
+
+export function cardSummary(row, origin) {
+  return {
+    id: row.Id, name: row.Name, state: row.EntityState?.Name ?? null,
+    project: row.Project ? { id: row.Project.Id, name: row.Project.Name } : null,
+    assignees: assignedUsers(row.AssignedUser),
+    modifiedAt: row.ModifyDate, url: `${origin}/entity/${row.Id}`,
+  };
 }
 
 function dateNumber(value) {
